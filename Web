@@ -1,0 +1,314 @@
+<!DOCTYPE html><html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>SECURE PHONE LOCK</title>
+  <meta name="theme-color" content="#0a0f1d" />
+  <style>
+    :root {
+      --bg: #070b16;
+      --bg2: #0e1630;
+      --fg: #e6f3ff;
+      --accent: #08f7fe;
+      --good: #00ff9c;
+      --bad: #ff4d6d;
+      --warn: #ffd166;
+      --glass: rgba(255,255,255,0.06);
+      --grid: rgba(8,247,254,0.08);
+      --shadow: 0 10px 40px rgba(0,0,0,0.45);
+    }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      color: var(--fg);
+      background: radial-gradient(1200px 600px at 50% -10%, #121a36 0%, var(--bg) 50%),
+                  linear-gradient(135deg, var(--bg2), var(--bg));
+      overflow: hidden;
+    }/* subtle grid */
+.grid::before {
+  content: "";
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle at 1px 1px, var(--grid) 1px, transparent 0);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0.3));
+  pointer-events: none;
+}
+
+.wrap {
+  position: relative; height: 100%; width: 100%; display: grid; place-items: center;
+}
+
+.card {
+  width: min(420px, 92vw);
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 28px;
+  padding: 26px 22px 18px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(8px) saturate(120%);
+  position: relative;
+}
+
+.hdr {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px;
+}
+.status {
+  display: inline-flex; align-items: center; gap: 8px; font-weight: 700; letter-spacing: 1px; font-size: 12px; color: var(--warn);
+  text-transform: uppercase;
+}
+.pulse { width: 10px; height: 10px; border-radius: 50%; background: var(--warn); box-shadow: 0 0 18px var(--warn); animation: blip 1.2s infinite; }
+@keyframes blip { 0%, 100% {opacity: .35; transform: scale(.9)} 50% {opacity: 1; transform: scale(1.15)} }
+
+.title {
+  font-size: 14px; opacity: .85; text-align: right; letter-spacing: 2px; color: #9ecaff;
+}
+
+.lock {
+  display: grid; place-items: center; margin: 16px 0 10px;
+}
+.fingerprint {
+  width: 84px; height: 84px; border-radius: 22px; border: 1px dashed rgba(8,247,254,0.3);
+  display: grid; place-items: center; color: var(--accent);
+  box-shadow: inset 0 0 40px rgba(8,247,254,0.08), 0 0 0 4px rgba(8,247,254,0.08);
+  animation: scan 2.6s linear infinite;
+}
+@keyframes scan {0% {filter: drop-shadow(0 0 0 rgba(8,247,254,0.0))} 50% {filter: drop-shadow(0 0 16px rgba(8,247,254,0.45))} 100% {filter: drop-shadow(0 0 0 rgba(8,247,254,0.0))}}
+
+.fp svg { opacity: .8 }
+
+.msg { text-align: center; font-size: 12px; letter-spacing: .8px; margin-top: 10px; opacity: .7 }
+
+.inputZone { margin: 18px 0 8px; display: grid; gap: 12px; }
+
+.pw {
+  display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;
+  background: var(--glass); border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 12px 14px;
+}
+.pw input {
+  background: transparent; border: none; outline: none; color: var(--fg); font-size: 18px; letter-spacing: 6px; text-align: center;
+}
+.pw button { 
+  background: linear-gradient(180deg, rgba(8,247,254,0.2), rgba(8,247,254,0.05));
+  border: 1px solid rgba(8,247,254,0.45); color: var(--accent); border-radius: 10px; padding: 8px 12px; font-weight: 700; cursor: pointer;
+  transition: transform .15s ease;
+}
+.pw button:active { transform: translateY(1px) scale(0.98); }
+
+.keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.keypad button {
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px; height: 54px; font-size: 18px; color: var(--fg); cursor: pointer; transition: transform .07s ease;
+}
+.keypad button:active { transform: scale(0.98); }
+
+.footer {
+  display: flex; justify-content: space-between; align-items: center; opacity: .6; font-size: 11px; margin-top: 6px;
+}
+
+.actions { display: flex; gap: 8px; }
+.actions button {
+  background: transparent; border: 1px dashed rgba(255,255,255,0.25); color: #bcd7ff; padding: 6px 10px; border-radius: 10px; cursor: pointer;
+}
+
+.attempts { text-align: center; font-size: 12px; opacity: .7; margin-top: 2px }
+
+.badge {
+  position: absolute; top: -10px; right: 14px; background: #0b1a2e; border: 1px solid rgba(8,247,254,0.5);
+  color: var(--accent); font-size: 10px; padding: 4px 8px; border-radius: 999px; letter-spacing: 1px; text-transform: uppercase;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+}
+
+/* states */
+.shake { animation: shake .35s ease; }
+@keyframes shake { 10%, 90% { transform: translateX(-1px) } 20%, 80% { transform: translateX(2px) } 30%, 50%, 70% { transform: translateX(-4px) } 40%, 60% { transform: translateX(4px) } }
+
+.log {
+  margin-top: 10px; height: 110px; overflow: auto; padding: 10px; border-radius: 12px;
+  background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); font-size: 12px;
+}
+.log p { margin: 0 0 6px; white-space: pre-wrap; }
+.good { color: var(--good) }
+.bad { color: var(--bad) }
+.info { color: var(--accent) }
+
+.unlocked {
+  position: fixed; inset: 0; display: none; place-items: center; background: rgba(0,255,155,0.08);
+  backdrop-filter: blur(10px) saturate(120%);
+}
+.unlocked.show { display: grid; }
+.unlocked .box {
+  background: linear-gradient(180deg, rgba(0,0,0,0.5), rgba(0,0,0,0.1)); border: 1px solid rgba(0,255,155,0.6);
+  color: var(--good); padding: 24px 26px; border-radius: 20px; width: min(460px, 92vw); text-align: center; box-shadow: var(--shadow);
+}
+.unlocked h2 { margin: 0 0 8px; letter-spacing: 2px; }
+.unlocked p { margin: 0; opacity: .8 }
+
+.tiny { opacity: .25; font-size: 9px; text-align: center; margin-top: 10px }
+
+  </style>
+</head>
+<body>
+  <div class="wrap grid">
+    <div class="card" id="card">
+      <div class="badge">LEVEL 7 SECURITY</div>
+      <div class="hdr">
+        <div class="status"><span class="pulse"></span><span>SYSTEM ARMED</span></div>
+        <div class="title">SECURE DEVICE LOCKED</div>
+      </div><div class="lock">
+    <div class="fingerprint fp" aria-hidden="true">
+      <!-- Fingerprint icon -->
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2.75c-4.694 0-8.5 3.806-8.5 8.5 0 2.164.808 4.138 2.135 5.631a.75.75 0 0 0 1.119-1 7.005 7.005 0 0 1-1.754-4.631 7 7 0 1 1 12.094 4.722.75.75 0 1 0 1.152.962A8.482 8.482 0 0 0 20.5 11.25c0-4.694-3.806-8.5-8.5-8.5Z" fill="currentColor"/>
+        <path d="M12 6.25a5 5 0 0 0-5 5 .75.75 0 0 0 1.5 0 3.5 3.5 0 1 1 6.469 1.75.75.75 0 1 0 1.313.75A5 5 0 0 0 12 6.25Z" fill="currentColor"/>
+        <path d="M12 9.25c-.966 0-1.75.784-1.75 1.75 0 2.79-1.196 4.847-2.045 5.99a.75.75 0 0 0 1.19.91C10.546 16.555 11.75 14.158 11.75 11a.25.25 0 0 1 .5 0c0 3.875 1.379 6.546 2.612 7.994a.75.75 0 1 0 1.126-.986C14.15 16.8 13.25 14.284 13.25 11c0-.966-.784-1.75-1.75-1.75Z" fill="currentColor"/>
+      </svg>
+    </div>
+    <div class="msg">Masukkan <b>Device Password</b> untuk membuka kunci.</div>
+  </div>
+
+  <div class="inputZone">
+    <div class="pw" id="pwBox">
+      <input id="pw" type="password" inputmode="numeric" maxlength="12" placeholder="••••" autocomplete="one-time-code" />
+      <button id="enter">ENTER</button>
+    </div>
+    <div class="keypad" aria-label="numeric keypad">
+      <button data-k="1">1</button>
+      <button data-k="2">2</button>
+      <button data-k="3">3</button>
+      <button data-k="4">4</button>
+      <button data-k="5">5</button>
+      <button data-k="6">6</button>
+      <button data-k="7">7</button>
+      <button data-k="8">8</button>
+      <button data-k="9">9</button>
+      <button data-k="back">⌫</button>
+      <button data-k="0">0</button>
+      <button data-k="clear">C</button>
+    </div>
+    <div class="attempts" id="attempts">Attempts remaining: 5</div>
+  </div>
+
+  <div class="log" id="log" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="footer">
+    <div class="actions">
+      <button id="fs">Layar Penuh</button>
+      <button id="vibrate">Getar</button>
+    </div>
+    <div>IP TRACE: <span id="trace">10.42.0.13:443</span></div>
+  </div>
+  <div class="tiny">For PRANK use only · Tidak benar‑benar mengunci perangkat</div>
+</div>
+
+  </div>  <div class="unlocked" id="overlay">
+    <div class="box">
+      <h2>ACCESS GRANTED</h2>
+      <p>Device Unlocked · Welcome, <span id="who">ADMIN</span></p>
+      <p class="tiny">(psst… ini cuma prank 😆)</p>
+    </div>
+  </div>  <script>
+    // ======= SETTINGS =======
+    // Default passcode; can be overridden via URL: ?code=1234
+    const DEFAULT_CODE = '2709';
+    const MAX_ATTEMPTS = 5;
+
+    // Read URL params for customizations
+    const params = new URLSearchParams(location.search);
+    const PASSCODE = (params.get('code') || DEFAULT_CODE).toString();
+    const alias = params.get('name') || 'ADMIN';
+    document.getElementById('who').textContent = alias.toUpperCase();
+
+    // Elements
+    const log = document.getElementById('log');
+    const pw = document.getElementById('pw');
+    const enterBtn = document.getElementById('enter');
+    const attemptsEl = document.getElementById('attempts');
+    const overlay = document.getElementById('overlay');
+    const card = document.getElementById('card');
+
+    // Fake trace string generator
+    function randomTrace(){
+      const a = Math.floor(Math.random()*255);
+      const b = Math.floor(Math.random()*255);
+      const c = Math.floor(Math.random()*255);
+      const d = Math.floor(Math.random()*255);
+      const port = [22,80,135,443,8080,8443][Math.floor(Math.random()*6)];
+      return `${a}.${b}.${c}.${d}:${port}`;
+    }
+    document.getElementById('trace').textContent = randomTrace();
+
+    // Logger
+    function pushLog(text, cls='info'){
+      const p = document.createElement('p');
+      p.className = cls; p.textContent = `> ${new Date().toLocaleTimeString()}  ${text}`;
+      log.prepend(p);
+    }
+
+    // Attempts handling
+    let remaining = MAX_ATTEMPTS;
+
+    function deny(reason = 'ACCESS DENIED'){
+      pushLog(reason, 'bad');
+      card.classList.remove('shake');
+      void card.offsetWidth; // restart animation
+      card.classList.add('shake');
+      if (navigator.vibrate) navigator.vibrate([60, 80, 60]);
+    }
+
+    function grant(){
+      pushLog('Credentials accepted. Elevating privileges…', 'good');
+      overlay.classList.add('show');
+      if (navigator.vibrate) navigator.vibrate(120);
+    }
+
+    function check(){
+      const val = pw.value;
+      if (!val) return deny('Input kosong.');
+      if (val === PASSCODE) return grant();
+      remaining--;
+      attemptsEl.textContent = `Attempts remaining: ${Math.max(0, remaining)}`;
+      if (remaining <= 0){
+        deny('Too many attempts. Device locked for 60s.');
+        enterBtn.disabled = true;
+        [...document.querySelectorAll('.keypad button')].forEach(b=>b.disabled=true);
+        setTimeout(()=>{
+          remaining = MAX_ATTEMPTS;
+          attemptsEl.textContent = `Attempts remaining: ${remaining}`;
+          enterBtn.disabled = false;
+          [...document.querySelectorAll('.keypad button')].forEach(b=>b.disabled=false);
+          pushLog('Lock cooldown ended. Try again.', 'info');
+        }, 60000);
+      } else {
+        deny('Password salah. Intrusion flagged.');
+      }
+      pw.value = '';
+      pw.focus();
+    }
+
+    enterBtn.addEventListener('click', check);
+    pw.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') check(); });
+
+    // keypad
+    document.querySelector('.keypad').addEventListener('click', (e)=>{
+      const k = e.target.getAttribute('data-k');
+      if (!k) return;
+      if (k === 'back') { pw.value = pw.value.slice(0,-1); return; }
+      if (k === 'clear') { pw.value = ''; return; }
+      pw.value += k;
+    });
+
+    // fullscreen and vibrate buttons
+    document.getElementById('fs').addEventListener('click', async ()=>{
+      try { await document.documentElement.requestFullscreen(); } catch {}
+    });
+    document.getElementById('vibrate').addEventListener('click', ()=>{
+      if (navigator.vibrate) navigator.vibrate([50,50,120]);
+    });
+
+    // Intro logs
+    pushLog('Security module loaded. Awaiting credentials…');
+    pushLog(`Required code hash: ${btoa(PASSCODE).slice(0,8)}***`);
+  </script></body>
+</html>
